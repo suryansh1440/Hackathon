@@ -42,7 +42,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-black text-white py-6 border-t border-gray-700">
+    <footer className="bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 text-white py-4 border-t border-indigo-800 z-60">
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -53,7 +53,7 @@ const Footer = () => {
         <div className="flex flex-col items-center justify-center">
           <motion.div
             variants={containerVariants}
-            className="flex space-x-5 mb-4"
+            className="flex space-x-5 mb-2"
           >
             {socialLinks.map((link, index) => (
               <motion.a
@@ -64,7 +64,7 @@ const Footer = () => {
                 variants={itemVariants}
                 whileHover={{ scale: 1.15, y: -3 }}
                 whileTap={{ scale: 0.95 }}
-                className={`text-2xl transition-all duration-300 ${link.color} cursor-pointer hover:drop-shadow-lg`}
+                className={`text-xl transition-all duration-300 ${link.color} cursor-pointer hover:drop-shadow-lg`}
               >
                 {link.icon}
               </motion.a>
@@ -73,15 +73,15 @@ const Footer = () => {
 
           <motion.div
             variants={itemVariants}
-            className="text-center text-sm text-gray-300"
+            className="text-center text-sm text-indigo-100"
           >
             <p className="mb-1">
               © {new Date().getFullYear()} Suryaa. All rights reserved.
             </p>
             <div className="flex items-center justify-center space-x-2">
-              <span className="h-px w-8 bg-gray-500"></span>
+              <span className="h-px w-8 bg-indigo-400"></span>
               <span>Made with ❤️</span>
-              <span className="h-px w-8 bg-gray-500"></span>
+              <span className="h-px w-8 bg-indigo-400"></span>
             </div>
           </motion.div>
         </div>

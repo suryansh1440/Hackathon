@@ -1,0 +1,1 @@
+router.post("/update-coins", authMiddleware, updateCoinsController); 

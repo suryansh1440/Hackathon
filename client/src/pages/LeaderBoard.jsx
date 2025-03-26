@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Axios from '../utils/Axios';
 import AxiosToastError from '../utils/AxiosToastError';
 import { TfiCrown } from 'react-icons/tfi';
-import { FiRefreshCw, FiUser } from 'react-icons/fi';
+import { FiRefreshCw, FiUser, FiAward } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 
 const LeaderBoard = () => {
@@ -39,10 +39,17 @@ const LeaderBoard = () => {
     };
 
     const getRankColor = (index) => {
-        if (index === 0) return 'from-yellow-400 to-yellow-200';
-        if (index === 1) return 'from-gray-400 to-gray-200';
-        if (index === 2) return 'from-amber-600 to-amber-400';
-        return 'from-blue-100 to-blue-50';
+        if (index === 0) return 'from-yellow-400 via-yellow-300 to-yellow-200';
+        if (index === 1) return 'from-gray-300 via-gray-200 to-gray-100';
+        if (index === 2) return 'from-amber-500 via-amber-400 to-amber-300';
+        return 'from-blue-50 to-white';
+    };
+
+    const getRankBadge = (index) => {
+        if (index === 0) return 'bg-yellow-400 text-white';
+        if (index === 1) return 'bg-gray-400 text-white';
+        if (index === 2) return 'bg-amber-500 text-white';
+        return 'bg-blue-100 text-blue-800';
     };
 
     const truncateName = (name) => {
@@ -50,10 +57,10 @@ const LeaderBoard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
                 <div className="text-center mb-12">
-                    <h1 className="text-4xl font-extrabold text-gray-900 mb-4 flex items-center justify-center gap-2">
+                    <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-4 flex items-center justify-center gap-3">
                         <TfiCrown className="text-yellow-400 animate-bounce" />
                         Leaderboard
                         <TfiCrown className="text-yellow-400 animate-bounce delay-75" />
@@ -61,17 +68,20 @@ const LeaderBoard = () => {
                     <button
                         onClick={handleRefresh}
                         disabled={loading || isRefreshing}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors duration-200 disabled:opacity-50"
+                        className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-full text-white bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1"
                     >
                         <FiRefreshCw className={`mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        Refresh
+                        Refresh Leaderboard
                     </button>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-3xl">
-                    <div className="bg-gradient-to-r from-indigo-500 to-blue-500 p-6">
+                <div className="bg-white rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-3xl backdrop-blur-lg bg-opacity-90">
+                    <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 p-6">
                         <div className="grid grid-cols-4 text-white font-bold text-lg">
-                            <span>Rank</span>
+                            <span className="flex items-center gap-2">
+                                <FiAward className="w-5 h-5" />
+                                Rank
+                            </span>
                             <span>Name</span>
                             <span className="text-right">Score</span>
                             <span className="text-right">Profile</span>
@@ -89,50 +99,56 @@ const LeaderBoard = () => {
                             data.map((user, index) => (
                                 <div
                                     key={user._id}
-                                    className={`group transform transition-all duration-200 hover:scale-[1.02] hover:shadow-md ${index < 3 ? 'bg-gradient-to-r' : ''} ${getRankColor(index)}`}
+                                    className={`group transform transition-all duration-300 hover:scale-[1.02] hover:shadow-lg ${
+                                        index < 3 ? 'bg-gradient-to-r' : ''
+                                    } ${getRankColor(index)}`}
                                 >
                                     <div className="grid grid-cols-4 items-center p-6">
                                         <div className="flex items-center space-x-4">
-                                            <span className={`font-bold ${index < 3 ? 'text-white' : 'text-gray-700'}`}>
+                                            <span className={`font-bold text-lg ${index < 3 ? 'text-white' : 'text-gray-700'}`}>
                                                 #{index + 1}
                                             </span>
                                             {index < 3 && (
-                                                <div className="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
-                                                    <TfiCrown className={`${index === 0 ? 'text-yellow-400' : index === 1 ? 'text-gray-400' : 'text-amber-400'}`} />
+                                                <div className={`w-10 h-10 rounded-full ${getRankBadge(index)} flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
+                                                    <TfiCrown className="w-5 h-5" />
                                                 </div>
                                             )}
                                         </div>
-                                        <span className={`font-medium ${index < 3 ? 'text-white' : 'text-gray-900'}`}>
+                                        <span className={`font-medium text-lg ${index < 3 ? 'text-white' : 'text-gray-900'}`}>
                                             <span className="hidden lg:inline">{user.name}</span>
                                             <span className="lg:hidden">{truncateName(user.name)}</span>
                                         </span>
-                                        <span className={`text-right font-semibold ${index < 3 ? 'text-white' : 'text-green-600'}`}>
+                                        <span className={`text-right font-bold text-xl ${index < 3 ? 'text-white' : 'text-green-600'}`}>
                                             {user.correctAnswer} Points
                                         </span>
                                         <div className="text-right">
                                             <button
                                                 onClick={() => handleProfileClick(user._id)}
-                                                className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+                                                className="p-2 rounded-full hover:bg-gray-100 transition-all duration-300 transform hover:scale-110"
                                                 title="View Profile"
                                             >
-                                                <FiUser className={`w-5 h-5 ${index < 3 ? 'text-white' : 'text-indigo-600'}`} />
+                                                <FiUser className={`w-6 h-6 ${index < 3 ? 'text-white' : 'text-indigo-600'}`} />
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="p-8 text-center">
-                                <div className="text-gray-500 mb-4">📭</div>
-                                <p className="text-gray-600 font-medium">No scores available yet. Be the first!</p>
+                            <div className="p-12 text-center">
+                                <div className="text-6xl mb-4">🏆</div>
+                                <p className="text-gray-600 text-lg font-medium">No scores available yet. Be the first to climb the ranks!</p>
                             </div>
                         )}
                     </div>
                 </div>
 
                 {!loading && data.length > 0 && (
-                    <div className="mt-6 text-center text-sm text-gray-500">
-                        Updated {new Date().toLocaleTimeString()}
+                    <div className="mt-8 text-center">
+                        <div className="inline-flex items-center px-4 py-2 rounded-full bg-white shadow-md">
+                            <span className="text-sm text-gray-600">
+                                Last updated: {new Date().toLocaleTimeString()}
+                            </span>
+                        </div>
                     </div>
                 )}
             </div>

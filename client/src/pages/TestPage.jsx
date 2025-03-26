@@ -19,6 +19,7 @@ const TestPage = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(null);
   const [streak, setStreak] = useState(0);
+  const [userCoins, setUserCoins] = useState(0);
   const topic = searchParams.get('topic');
   const userId = searchParams.get('id');
   const dispatch = useDispatch();
@@ -125,7 +126,30 @@ const TestPage = () => {
     }
   }, [currentQuestionIndex, showResults, questions.length]);
 
-  const handleAnswerSelect = (questionIndex, optionIndex) => {
+  useEffect(() => {
+    const fetchUserCoins = async () => {
+      try {
+        const response = await Axios({
+          method: SummeryApi.getUserDetails.method,
+          url: SummeryApi.getUserDetails.url,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+        if (response.data.success) {
+          setUserCoins(response.data.data.coins);
+        }
+      } catch (error) {
+        console.error('Error fetching user coins:', error);
+      }
+    };
+
+    if (userId) {
+      fetchUserCoins();
+    }
+  }, [userId]);
+
+  const handleAnswerSelect = async (questionIndex, optionIndex) => {
     if (timeLeft === 0) return;
     
     setSelectedAnswers(prev => ({
@@ -133,17 +157,74 @@ const TestPage = () => {
       [questionIndex]: optionIndex
     }));
 
+    // Update streak and calculate correct answers
+    const isCorrect = questions[questionIndex].correctAnswer === optionIndex;
+    if (isCorrect) {
+      setStreak(prev => prev + 1);
+      
+      // Update answers and coins in separate API calls
+      try {
+        // First update the answer count
+        await Axios({
+          method: SummeryApi.updateAnswer.method,
+          url: SummeryApi.updateAnswer.url,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+          data: {
+            userId,
+            topic,
+            correctAnswer: 1,
+            wrongAnswer: 0
+          }
+        });
+
+        // Then update coins
+        const coinsResponse = await Axios({
+          method: SummeryApi.updateCoins.method,
+          url: SummeryApi.updateCoins.url,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+          data: {
+            coins: 10 // Add 10 coins for correct answer
+          }
+        });
+
+        if (coinsResponse.data.success) {
+          setUserCoins(prev => prev + 10);
+        }
+      } catch (error) {
+        console.error('Error updating answers and coins:', error);
+      }
+    } else {
+      setStreak(0);
+      
+      // Update wrong answer count
+      try {
+        await Axios({
+          method: SummeryApi.updateAnswer.method,
+          url: SummeryApi.updateAnswer.url,
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          },
+          data: {
+            userId,
+            topic,
+            correctAnswer: 0,
+            wrongAnswer: 1
+          }
+        });
+      } catch (error) {
+        console.error('Error updating answers:', error);
+      }
+    }
+
+    // Move to next question if not the last question
     if (questionIndex === currentQuestionIndex && currentQuestionIndex < questions.length - 1) {
       setTimeout(() => {
         setCurrentQuestionIndex(prev => prev + 1);
       }, 500);
-    }
-
-    // Update streak
-    if (questions[questionIndex].correctAnswer === optionIndex) {
-      setStreak(prev => prev + 1);
-    } else {
-      setStreak(0);
     }
   };
 
@@ -185,6 +266,85 @@ const TestPage = () => {
       }
     } catch (error) {
       console.error('Error updating answers:', error);
+    }
+  };
+
+  const handleSkipQuestion = async () => {
+    if (userCoins < 20) {
+      alert('Not enough coins! You need 20 coins to skip a question.');
+      return;
+    }
+
+    try {
+      const response = await Axios({
+        method: SummeryApi.updateCoins.method,
+        url: SummeryApi.updateCoins.url,
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        data: {
+          coins: -20 // Deduct 20 coins for skipping
+        }
+      });
+
+      if (response.data.success) {
+        setUserCoins(prev => prev - 20);
+        
+        // Add the skipped question to selectedAnswers
+        setSelectedAnswers(prev => ({
+          ...prev,
+          [currentQuestionIndex]: -1 // Mark as skipped
+        }));
+
+        // If this was the last question, show results
+        if (currentQuestionIndex === questions.length - 1) {
+          const totalQuestions = questions.length;
+          const correctAnswer = questions.reduce((count, question, index) => {
+            return selectedAnswers[index] === question.correctAnswer ? count + 1 : count;
+          }, 0);
+          const wrongAnswer = totalQuestions - correctAnswer;
+          setScore((correctAnswer / totalQuestions) * 100);
+          setShowResults(true);
+
+          try {
+            await Axios({
+              method: SummeryApi.updateAnswer.method,
+              url: SummeryApi.updateAnswer.url,
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+              },
+              data: {
+                userId,
+                topic,
+                correctAnswer,
+                wrongAnswer,
+                coins: 0 // No additional coins for showing results
+              }
+            });
+
+            // Fetch updated user details
+            const userResponse = await Axios({
+              method: SummeryApi.getUserDetails.method,
+              url: SummeryApi.getUserDetails.url,
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+              }
+            });
+
+            if (userResponse.data.success) {
+              dispatch(setUserDetails(userResponse.data.data));
+            }
+          } catch (error) {
+            console.error('Error updating answers:', error);
+          }
+        } else {
+          // Move to next question
+          setCurrentQuestionIndex(prev => prev + 1);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating coins:', error);
+      alert('Failed to skip question. Please try again.');
     }
   };
 
@@ -265,6 +425,9 @@ const TestPage = () => {
               )}
               <div className="bg-indigo-100 rounded-lg px-4 py-2">
                 <span className="text-indigo-600 font-medium">Streak: {streak} 🔥</span>
+              </div>
+              <div className="bg-yellow-100 rounded-lg px-4 py-2">
+                <span className="text-yellow-600 font-medium">Coins: {userCoins} 🪙</span>
               </div>
             </div>
             
@@ -403,6 +566,22 @@ const TestPage = () => {
                 className="w-full py-4 px-6 mb-2 rounded-xl text-white font-bold text-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 "
               >
               Go Home
+              </button>
+            </div>
+          )}
+
+          {!showResults && (
+            <div className="mt-4">
+              <button
+                onClick={handleSkipQuestion}
+                disabled={userCoins < 20}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+                  userCoins >= 20
+                    ? 'bg-yellow-500 text-white hover:bg-yellow-600'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                Skip Question (-20 coins)
               </button>
             </div>
           )}

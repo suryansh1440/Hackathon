@@ -455,43 +455,53 @@ export const logoutUserController = async (req, res) => {
         const userId = req.userId;
         const { correctAnswer, wrongAnswer } = req.body;
         const previousAnswers = await UserModel.findById(userId).select("correctAnswer wrongAnswer");
-        const totalCorrectAnswer=previousAnswers.correctAnswer+correctAnswer;
-        const totalWrongAnswer=previousAnswers.wrongAnswer+wrongAnswer;
-        await UserModel.updateOne({_id:userId},{correctAnswer:totalCorrectAnswer,wrongAnswer:totalWrongAnswer});
+        const totalCorrectAnswer = previousAnswers.correctAnswer + correctAnswer;
+        const totalWrongAnswer = previousAnswers.wrongAnswer + wrongAnswer;
+
+        await UserModel.updateOne(
+            {_id: userId},
+            {
+                correctAnswer: totalCorrectAnswer,
+                wrongAnswer: totalWrongAnswer
+            }
+        );
+
         return res.status(200).json({
-            message: "Correct answer updated successfully",
+            message: "Answers updated successfully",
             success: true,
-            error:false,
-            data:{
-                previousCorrectAnswer:previousAnswers.correctAnswer,
-                newCorrectAnswer:totalCorrectAnswer,
-                previousWrongAnswer:previousAnswers.wrongAnswer,
-                newWrongAnswer:totalWrongAnswer,
+            error: false,
+            data: {
+                previousCorrectAnswer: previousAnswers.correctAnswer,
+                newCorrectAnswer: totalCorrectAnswer,
+                previousWrongAnswer: previousAnswers.wrongAnswer,
+                newWrongAnswer: totalWrongAnswer
             },
         });
     }catch(error){
         return res.status(500).json({
             message: error.message || "Internal server error",
             success: false,
-            error:true,
+            error: true,
         });
     }
  }
 
  export const getLeaderboardController = async (req, res) => {
     try{
-        const users = await UserModel.find().sort({correctAnswer:-1}).select("name correctAnswer");
+        const users = await UserModel.find()
+            .sort({correctAnswer: -1})
+            .select("name correctAnswer");
         return res.status(200).json({
             message: "Leaderboard fetched successfully",
             success: true,
             error: false,
-            data:users,
+            data: users,
         });
     }catch(error){
         return res.status(500).json({
             message: error.message || "Internal server error",
             success: false,
-            error:true,
+            error: true,
         });
     }
  }
@@ -499,7 +509,7 @@ export const logoutUserController = async (req, res) => {
  export const showProfileController = async (req, res) => {
     try {
         const userId = req.query.id; 
-        const user = await UserModel.findById(userId).select("name correctAnswer wrongAnswer email avatar");
+        const user = await UserModel.findById(userId).select("name correctAnswer wrongAnswer email avatar coins");
         if (!user) {
             return res.status(400).json({
                 message: "User not found",
@@ -513,6 +523,55 @@ export const logoutUserController = async (req, res) => {
             success: true,
             error: false,
             data: user,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            message: error.message || "Internal server error",
+            success: false,
+            error: true,
+        });
+    }
+};
+
+export const updateCoinsController = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { coins } = req.body;
+
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            return res.status(400).json({
+                message: "User not found",
+                success: false,
+                error: true,
+            });
+        }
+
+        // Calculate new coin balance
+        const newCoins = user.coins + coins;
+        if (newCoins < 0) {
+            return res.status(400).json({
+                message: "Not enough coins",
+                success: false,
+                error: true,
+            });
+        }
+
+        // Update user's coins
+        await UserModel.updateOne(
+            { _id: userId },
+            { coins: newCoins }
+        );
+
+        return res.status(200).json({
+            message: "Coins updated successfully",
+            success: true,
+            error: false,
+            data: {
+                previousCoins: user.coins,
+                newCoins: newCoins,
+                coinsChanged: coins
+            },
         });
     } catch (error) {
         return res.status(500).json({

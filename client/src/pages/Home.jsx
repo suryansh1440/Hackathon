@@ -56,7 +56,7 @@ const Home = () => {
       </div>
 
       {/* Course Videos Section */}
-      <CourseVideos />
+      {/* <CourseVideos /> */}
 
       {/* Call to Action Section */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 py-16">

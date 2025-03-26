@@ -14,6 +14,7 @@ const initialState = {
     role: "",
     correctAnswer:0,
     wrongAnswer:0,
+    coins: 0,
 }
 
 const userSlice = createSlice({
@@ -34,9 +35,13 @@ const userSlice = createSlice({
             state.role = action.payload?.role;
             state.correctAnswer = action.payload?.correctAnswer;
             state.wrongAnswer = action.payload?.wrongAnswer;
+            state.coins = action.payload?.coins || 0;
         },
         updateUserAvatar: (state, action) => {
             state.avatar = action.payload?.avatar;
+        },
+        updateCoins: (state, action) => {
+            state.coins = action.payload;
         },
         logout: (state) => {
             state._id = "";
@@ -50,11 +55,12 @@ const userSlice = createSlice({
             state.address_details = [];
             state.course = [];
             state.role = "";
-            state.correctAnswer  = 0;
+            state.correctAnswer = 0;
             state.wrongAnswer = 0;
+            state.coins = 0;
         }
     }
 })
 
-export const { setUserDetails, logout, updateUserAvatar } = userSlice.actions;
+export const { setUserDetails, logout, updateUserAvatar, updateCoins } = userSlice.actions;
 export default userSlice.reducer;

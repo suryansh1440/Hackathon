@@ -12,7 +12,7 @@ import useIsMobile from '../hooks/useIsMobile';
 import { FaRankingStar } from "react-icons/fa6";
 import { IoHome } from "react-icons/io5";
 import { GiArcheryTarget } from "react-icons/gi";
-
+import { FaCoins } from "react-icons/fa";
 
 const Header = () => {
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -41,18 +41,21 @@ const Header = () => {
           />
         </Link>
 
-
         {/* Navigation Links */}
         <nav className='items-center space-x-8 flex'>
-        {/* <Link to="/" className='text-lg hover:text-blue-600 transition-colors'>
-            <p className="hidden lg:block text-lg">Home</p>
-            <p className="block lg:hidden text-2xl"><IoHome /></p>
-          </Link> */}
           {
-            user?._id && (<Link to="/practice" className='text-lg hover:text-blue-600 transition-colors'>
-              <p className="hidden lg:block text-lg">Practice</p>
-              <p className="block lg:hidden text-2xl"><GiArcheryTarget /></p>
-            </Link>)
+            user?._id && (
+              <>
+                <Link to="/practice" className='text-lg hover:text-blue-600 transition-colors'>
+                  <p className="hidden lg:block text-lg">Practice</p>
+                  <p className="block lg:hidden text-2xl"><GiArcheryTarget /></p>
+                </Link>
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 rounded-full">
+                  <FaCoins className="text-yellow-500" />
+                  <span className="font-semibold text-yellow-600">{user.coins}</span>
+                </div>
+              </>
+            )
           }
           <Link to="/leaderBoard" className='text-lg hover:text-blue-600 transition-colors'>
             <p className="hidden lg:block text-lg">Ranking</p>
@@ -86,13 +89,12 @@ const Header = () => {
                   </div>
                 )}
               </div>
-            ) :
-              (
-                <Link to="/login" className='text-lg px-2 hover:text-blue-600 transition-colors'>
-                  <p className='lg:block hidden'>Login</p>
-                  <p className='lg:hidden block text-2xl'><MdLogin /></p>
-                </Link>
-              )
+            ) : (
+              <Link to="/login" className='text-lg px-2 hover:text-blue-600 transition-colors'>
+                <p className='lg:block hidden'>Login</p>
+                <p className='lg:hidden block text-2xl'><MdLogin /></p>
+              </Link>
+            )
           }
         </nav>
       </div>

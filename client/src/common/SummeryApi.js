@@ -72,7 +72,11 @@ const SummeryApi = {
     verifyEmail: {
         url: 'api/user/verify-email/:code',
         method: 'POST',
-    }
+    },
+    updateCoins: {
+        method: "POST",
+        url: "/api/user/update-coins"
+    },
 }
 
 export default SummeryApi
